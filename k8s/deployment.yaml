@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conversao-peso
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: conversao-peso
+  template:
+    metadata:
+      labels:
+        app: conversao-peso
+    spec:
+      containers:
+        - name: conversao-peso
+          image: linuxlite/conversao-peso:v1
+          ports:
+            - containerPort: 80
+---
+# Deployment Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: conversao-peso
+spec:
+  selector:
+    app: conversao-peso
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000
+  type: NodePort
