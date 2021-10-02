@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  CI:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,9 +22,28 @@ jobs:
       - name: Docker Build and Push
         uses: docker/build-push-action@v2.7.0
         with: 
-          context: ./src
-          file: ./src/Dockerfile
+          context: ./
+          file: ./Dockerfile
           push: true
           tags: 
-            linuxlite/rotten-potatoes:latest
-            linuxlite/rotten-potatoes:${{ github.run_number }}
+            linuxlite/conversao-temperatura:latest
+            linuxlite/conversao-temperatura:${{ github.run_number }}
+  CD:
+    needs: [CI]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Kubectl tool installer
+        uses: Azure/setup-kubectl@v1
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG }}
+          
+      - name: Deploy to Kubernetes cluster
+        uses: Azure/k8s-deploy@v1.3
+        with:
+          images: linuxlite/conversao-temperatura:${{ github.run_number }}
+          manifests: 
+            k8s: deployment.yaml
